@@ -37,9 +37,36 @@ class ProductSeeder extends AbstractSeeder
 
         $productType = ProductType::first();
 
+        // Create default product type if none exists
+        if (!$productType) {
+            $productType = ProductType::create([
+                'name' => 'Default',
+            ]);
+        }
+
         $taxClass = TaxClass::getDefault();
 
+        // Create default tax class if none exists
+        if (!$taxClass) {
+            $taxClass = TaxClass::create([
+                'name' => 'Default',
+                'default' => true,
+            ]);
+        }
+
         $currency = Currency::getDefault();
+
+        // Create default currency if none exists
+        if (!$currency) {
+            $currency = Currency::create([
+                'code' => 'USD',
+                'name' => 'US Dollar',
+                'exchange_rate' => 1,
+                'decimal_places' => 2,
+                'enabled' => true,
+                'default' => true,
+            ]);
+        }
 
         $collections = Collection::get();
 
@@ -51,6 +78,11 @@ class ProductSeeder extends AbstractSeeder
 
                 foreach ($product->attributes as $attributeHandle => $value) {
                     $attribute = $attributes->first(fn ($att) => $att->handle == $attributeHandle);
+
+                    // Skip if attribute not found
+                    if (!$attribute) {
+                        continue;
+                    }
 
                     if ($attribute->type == TranslatedText::class) {
                         $attributeData[$attributeHandle] = new TranslatedText([
